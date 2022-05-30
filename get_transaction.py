@@ -18,7 +18,6 @@ import json
 import re
 import requests
 
-
 """
 Uniswap: 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
 Sushiswap: 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F
@@ -118,10 +117,7 @@ ETHERSCAN_API_KEY = "SA2W4B5HJP11B4WTX6679QS5PCU6RM9QFY"
 def getTokenInfo(address):
     abi_endpoint = f"https://api.etherscan.io/api?module=contract&action=getabi&address={address}&apikey={ETHERSCAN_API_KEY}"
     abi = json.loads(requests.get(abi_endpoint).text)
-
     abi_token = json.loads(abi['result'])
-
-
     tokenContract = w3.eth.contract(address = address, abi = abi_token)
     tokenName = tokenContract.functions.name().call()
     tokenDec = tokenContract.functions.decimals().call()
@@ -130,13 +126,9 @@ def getTokenInfo(address):
 
 tx_hash = "0x245015ce504d7e532ff1d03e931622886a150a4342a23d9288644afa546f0fa4"
 
-@app.route('/<string:tx_hash>/')
 def get_transaction(tx_hash):
 
     tx = w3.eth.get_transaction(tx_hash)
-
-    # print(tx)
-
     if(tx['input'] == '0x'):
       sender = tx['from']
       to = tx['to']
@@ -216,22 +208,19 @@ def get_transaction(tx_hash):
           return("{} sent {} #{} to {}".format(tx['from'], tokenMapping[tx['to']], func_params['tokenId'], func_params['to']) )
 
 
-
-
-          # val = json.loads(output)['value']
-
-
-        # transaction = json.loads(output[1])
-
-        # print(tx)
-
-
-
-
-
         return "{from} called swap on {to} and sent"
 
-# get_transaction(tx_hash)
+
+@app.route('/<string:tx_hash>/')
+def mainApp(tx_hash):
+  tx_details = get_transaction(tx_hash)
+  tx_data_JSON = {
+    "transaction_hash" : tx_hash,
+    "NLv": tx_details
+  }
+
+  return jsonify(tx_data_JSON)
+
 
 if(__name__ == '__main__'):
     app.run()
